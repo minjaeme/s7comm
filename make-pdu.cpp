@@ -1,3 +1,9 @@
+/*
+@todo(21 06 18)
+- 
+
+*/
+
 #include <iostream>
 #include <iomanip>
 #include <vector>
@@ -6,14 +12,11 @@
 #include <random>
 using namespace std;
 
-int chk = 0;
-
-
 // util
 int makeRandom(int s); // 자리수
 string int_to_hex_len_two (int i);
 string int_to_hex_len_four (int i);
-string int_to_hex_len_six(int i);
+string int_to_hex_len_six (int i);
 vector<string> split(string s, string divid);
 
 // make parameter
@@ -25,12 +28,6 @@ string makeArea (string area);
 string makeAddress (string addr);
 
 int main() {
-    // test
-    cout << "---test---\n";
-    // cout << makeSize("W");
-    cout << "---end---\n";
-    // test end
-
 
     int itemCount = 0;
     string function;
@@ -45,12 +42,24 @@ int main() {
         getline(cin, assignPLC);
         inp.push_back(assignPLC);
     }
-    
+
+    // info
+    cout << "---inp data info---\n";
+    cout << "function: ";
+    cout << !function.compare("r") ? "read" : "write";
+    cout << '\n';
+    for (int i=0; i<itemCount; i++) {
+        cout << inp[i] << '\n';
+    }
+    cout << "---end---\n";
+    // test end
+
     // step1. initPDU Id, POSCTR, reserved
     string resultPDU = "32 01 00 00 ";
 
     // step1-2. reference, random
-    resultPDU += int_to_hex_len_four(makeRandom(4));
+    resultPDU += "xx xx ";
+    // resultPDU += int_to_hex_len_four(makeRandom(4));
 
     // step2. add parameter length
     resultPDU += int_to_hex_len_four(2 + itemCount * 12);
@@ -126,14 +135,15 @@ string makeSize (string size) {
     */
     string res = "";
     if (!size.compare("X")){
-        res = "01 ";
+        res = "01";
     } else if (!size.compare("B")){
-        res = "02 ";
+        res = "02";
     } else if (!size.compare("W")){
-        res = "04 ";
+        res = "04";
     } else if (!size.compare("D")){
-        res = "06 ";
+        res = "06";
     }
+    res += " ";
     return res;
 }
 
@@ -167,7 +177,8 @@ string makeDBNumber (string db) {
     while(dbNumber.size() != 4) {
         dbNumber = "0" + dbNumber;
     }
-    res = dbNumber.substr(0, 2) + " " + dbNumber.substr(2, 2) + " ";
+    res = dbNumber.substr(0, 2) + " " 
+    + dbNumber.substr(2, 2) + " ";
     return res;
 }
 
@@ -216,38 +227,38 @@ string int_to_hex_len_four(int i)
     stringstream stream;
     if (i < 0x100) {
         stream << "00 ";
-        stream << setfill ('0') << setw(2) << hex << i << " ";
+        stream << setfill ('0') << setw(2) << hex << i;
     } else {
         int first = i >> 8;
         int last = i % 0x100;
-        stream << setfill('0') << setw(2) << hex << first << " ";
-        stream << setfill('0') << setw(2) << hex << last << " ";
+        stream << setfill('0') << setw(2) << hex << first;
+        stream << setfill('0') << setw(2) << hex << last;
     }
-  
-  return stream.str();
+    stream << " ";
+    return stream.str();
 }
 
-string int_to_hex_len_six(int i)
-{
-  stringstream stream;
-  if (i > 0x10000) {
+string int_to_hex_len_six(int i) {
+    stringstream stream;
+    if (i > 0x10000) {
         int first = i >> 16;
         int second = (i % 0x10000) >> 8;
         int last = i % 0x100;
-        stream << setfill('0') << setw(2) << hex << first << " ";
-        stream << setfill('0') << setw(2) << hex << second << " ";
-        stream << setfill('0') << setw(2) << hex << last << " ";
+        stream << setfill('0') << setw(2) << hex << first;
+        stream << setfill('0') << setw(2) << hex << second;
+        stream << setfill('0') << setw(2) << hex << last;
     } else if (i > 0x100) {
         int first = i >> 8;
         int last = i % 0x100;
         stream << "00 ";
-        stream << setfill('0') << setw(2) << hex << first << " ";
-        stream << setfill('0') << setw(2) << hex << last << " ";
+        stream << setfill('0') << setw(2) << hex << first;
+        stream << setfill('0') << setw(2) << hex << last;
     } else {
         stream << "00 00 ";
-        stream << setfill ('0') << setw(2) << hex << i << " ";
+        stream << setfill ('0') << setw(2) << hex << i;
     }
-  return stream.str();
+    stream << " ";
+    return stream.str();
 }
 
 
@@ -271,7 +282,6 @@ int makeRandom(int s) {
     // 0 부터 10^s-1 까지 균등하게 나타나는 난수열을 생성하기 위해 균등 분포 정의.
     std::uniform_int_distribution<int> dis(0, pow(10, s)-1);
     int res = dis(gen);
-    cout << "t:" << hex << res << '\n';
 
     return res;
 }
