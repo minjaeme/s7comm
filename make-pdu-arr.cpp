@@ -16,14 +16,17 @@ using namespace std;
 int makeRandom(int s); // 자리수
 vector<string> split(string s, string divid);
 void printPDU(vector<int> v);
+void printPDUforTest(vector<int> v);
 
 // make parameter
 int makeFunction (string function);
 int makeSize (string size);
 int makeLength (string length);
+int makeLength (string length, string base);
 int makeDBNumber (string db);
 int makeArea (string area);
 int makeAddress (string addr);
+int makeAddress (string addr, string base);
 
 int main() {
     int itemCount = 0;
@@ -97,9 +100,30 @@ int main() {
     // step4. make parameter
     for (int i=0; i<itemCount; i++) {
         /*
-        cur[0] = area, cur[1] = size, cur[2] = addr
+        DB1-W:R 3 1
+        M-B:R 2 1
         */
+        // cur[1] offset (func[0] 기준, Byte로 바꿔야 한다.)
+        // cur[2] len (func[0] 기준, Byte로 바꿔야 한다.)
         vector<string> cur = split(inp[i], " ");
+        // comd[0] = DB1 or M
+        // comd[1] = W:R or B:R
+        vector<string> comd = split(cur[0], "-");
+        // func[0] = W or B : size
+        // func[1] = W or R 
+        vector<string> func = split(comd[1], ":");
+        
+        cout << comd[0] << " " << func[0] << " " << func[1] << " " << cur[1] << " " << cur[2] << endl;
+        cout << comd[0] << " " << "B" << " " << func[1]  << " " << makeAddress(cur[1], func[0]) << " " << makeAddress(cur[2], func[0]) << endl;
+
+        /*
+        DB1-W:R 3 1 offset3 len1
+        M-B:R 2 1
+
+        DB1-W:R 3 1
+        DB1.DB W 6, 2 // word 시작 add6, len4
+        */
+        
         int index = 0;
         // step 4-2. spec && length
         pdu.push_back(0x12);
@@ -109,17 +133,17 @@ int main() {
         pdu.push_back(0x10);
         
         // step 4-4. size
-        pdu.push_back(makeSize(cur[1]));
+        pdu.push_back(makeSize(func[0])); // ok
 
         // step 4-5. len
-        tmpValue = makeLength(cur[1]);
+        tmpValue = makeAddress(cur[1], func[0]); 
         pdu.push_back(tmpValue / 0x100);
         pdu.push_back(tmpValue % 0x100);
 
-        // step 4-6. db
-        if (cur[0].find("DB") != std::string::npos) {
+        // step 4-6. db ok
+        if (comd[0].find("DB") != std::string::npos) {
             // 만약 db다
-            tmpValue = makeDBNumber(cur[0]);
+            tmpValue = makeDBNumber(comd[0]);
             pdu.push_back(tmpValue / 0x100);
             pdu.push_back(tmpValue % 0x100);
         } else {
@@ -129,14 +153,13 @@ int main() {
         }
 
         // step 4-7. area
-        pdu.push_back(makeArea(cur[0]));
+        pdu.push_back(makeArea(func[0]));
         
         // step 4-8. addr
-        tmpValue = makeAddress(cur[2]);
+        tmpValue = makeAddress(cur[2], func[0]);
         pdu.push_back(tmpValue >> 0x10);
         pdu.push_back((tmpValue >> 0x8) % 0x100);
         pdu.push_back(tmpValue % 0x100);
-        // cout << resultPDU << '\n';
     }
 
     // 마지막에 step 0-1 사이즈를 update
@@ -144,7 +167,7 @@ int main() {
     pdu[2] = tmpValue / 0x100;
     pdu[3] = tmpValue % 0x100;
     
-    printPDU(pdu);
+    printPDUforTest(pdu);
     return 0;
 }
 
@@ -194,13 +217,37 @@ int makeLength (string length) {
     return res;
 }
 
+int makeLength (string length, string base) {
+    int res = 0;
+    /* 
+    모두 Byte기준으로 바꾼 뒤에 정리
+     */
+    int initLength = 0; // Byte기준 Length
+    if (!base.compare("X")) {
+        // BIT
+        res = makeLength(length) * 8;
+    } else if (!base.compare("B")) {
+        // Byte
+        // 바꿀필요없음.
+        res = makeLength(length);
+    } else if (!base.compare("W")) {
+        // Word
+        res = makeLength(length) / 2;
+    } else if (!base.compare("D")) {
+        // Double Word
+        res = makeLength(length) / 4;
+    }
+    return res;
+}
+
+
 int makeDBNumber (string db) {
     int res = 0;
 
     string dbNumber = "";
     for (int i=2; i<db.size(); i++) {
-        // DB1.DB X 0.0 
-        // DB100.DB x 0.0
+        // DB1 
+        // DB100
         if (48 > db[i] || db[i] > 57) {
             break;
         }
@@ -240,6 +287,30 @@ int makeAddress (string addr) {
     return res;
 }
 
+int makeAddress (string addr, string base) {
+    int res = 0;
+    /* 
+    모두 Byte기준으로 바꾼 뒤에 정리
+     */
+    int initLength = 0; // Byte기준 Length
+    if (!base.compare("X")) {
+        // BIT
+        res = stoi(addr);
+    } else if (!base.compare("B")) {
+        // Byte
+        // 바꿀필요없음.
+        res = stoi(addr) << 3;
+    } else if (!base.compare("W")) {
+        // Word
+        res = stoi(addr) * 2 << 3;
+    } else if (!base.compare("D")) {
+        // Double Word
+        res = stoi(addr) * 4 << 3;
+    }
+    return res;
+}
+
+
 
 vector<string> split(string s, string divid) {
 	vector<string> v;
@@ -269,4 +340,15 @@ void printPDU(vector<int> v) {
     for (int i : v) { 
         cout << setfill('0') << setw(2) << hex << i << " ";
     }
+}
+
+
+void printPDUforTest(vector<int> v) {
+    for (int i = 19; i < v.size(); i++) {
+        cout << setfill('0') << setw(2) << hex << v[i] << " ";
+        if (i%12 == 6) {
+            cout << '\n';
+        }
+    }
+    
 }
