@@ -30,6 +30,8 @@ int main() {
     string function;
     vector<string> inp;
     int tmpValue = 0;
+
+    vector<int> pdu;
     
     // step0. inp 파일 넣기
     cin >> itemCount >> function;
@@ -49,8 +51,23 @@ int main() {
     cout << "---end---\n";
     // test end
 
+    // step0-1 PDU 제외한 헤더 구현 TPKT.
+    // version, reserved
+    pdu.push_back(0x03);
+    pdu.push_back(0x00);
+    /* size */
+    tmpValue = 0xff;
+    pdu.push_back(tmpValue / 0x100);
+    pdu.push_back(tmpValue % 0x100);
+
+    // step0-2. COTP
+    pdu.push_back(0x02);
+    pdu.push_back(0xf0);
+    pdu.push_back(0x80);
+
+
     // step1. initPDU Id, POSCTR, reserved
-    vector<int> pdu;
+    
     pdu.push_back(0x32);
     pdu.push_back(0x01);
     pdu.push_back(0x00);
@@ -121,6 +138,12 @@ int main() {
         pdu.push_back(tmpValue % 0x100);
         // cout << resultPDU << '\n';
     }
+
+    // 마지막에 step 0-1 사이즈를 update
+    tmpValue = pdu.size();
+    pdu[2] = tmpValue / 0x100;
+    pdu[3] = tmpValue % 0x100;
+    
     printPDU(pdu);
     return 0;
 }
