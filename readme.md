@@ -2,10 +2,10 @@
 ## 명령어
 ```
 for linux
-g++ make-pdu.cpp && cat inp | ./a.out
+g++ make-pdu-arr.cpp && cat inp | ./a.out
 
 for windows(cmd)
-g++ make-pdu.cpp && type inp | ".\a.exe"
+g++ make-pdu-arr.cpp && type inp | ".\a.exe"
 ```
 
 ## input 파일 형식
