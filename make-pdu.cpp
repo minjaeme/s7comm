@@ -45,9 +45,6 @@ int main() {
 
     // info
     cout << "---inp data info---\n";
-    cout << "function: ";
-    cout << !function.compare("r") ? "read" : "write";
-    cout << '\n';
     for (int i=0; i<itemCount; i++) {
         cout << inp[i] << '\n';
     }
@@ -58,8 +55,9 @@ int main() {
     string resultPDU = "32 01 00 00 ";
 
     // step1-2. reference, random
-    resultPDU += "xx xx ";
+    resultPDU += "ff ff ";
     // resultPDU += int_to_hex_len_four(makeRandom(4));
+
 
     // step2. add parameter length
     resultPDU += int_to_hex_len_four(2 + itemCount * 12);
@@ -231,7 +229,7 @@ string int_to_hex_len_four(int i)
     } else {
         int first = i >> 8;
         int last = i % 0x100;
-        stream << setfill('0') << setw(2) << hex << first;
+        stream << setfill('0') << setw(2) << hex << first << " ";
         stream << setfill('0') << setw(2) << hex << last;
     }
     stream << " ";

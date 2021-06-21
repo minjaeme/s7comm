@@ -14,9 +14,6 @@ using namespace std;
 
 // util
 int makeRandom(int s); // 자리수
-int int_to_hex_len_two (int i);
-vector<int> int_to_hex_len_four (int i);
-vector<int> int_to_hex_len_six (int i);
 vector<string> split(string s, string divid);
 void printPDU(vector<int> v);
 
@@ -29,7 +26,6 @@ int makeArea (string area);
 int makeAddress (string addr);
 
 int main() {
-
     int itemCount = 0;
     string function;
     vector<string> inp;
@@ -61,9 +57,10 @@ int main() {
     pdu.push_back(0x00);
 
     // step1-2. reference, random
-    // resultPDU += "xx xx ";
-    pdu.push_back(makeRandom(2));
-    pdu.push_back(makeRandom(2));
+    // pdu.push_back(makeRandom(2));
+    // pdu.push_back(makeRandom(2));
+    pdu.push_back(0xff);
+    pdu.push_back(0xff);
 
     // step2. add parameter length
     tmpValue = 2 + itemCount * 12;
@@ -119,9 +116,9 @@ int main() {
         
         // step 4-8. addr
         tmpValue = makeAddress(cur[2]);
-        pdu.push_back(tmpValue/0x10000);
-        pdu.push_back((tmpValue >> 0x8) % 0x100);
         pdu.push_back(tmpValue >> 0x10);
+        pdu.push_back((tmpValue >> 0x8) % 0x100);
+        pdu.push_back(tmpValue % 0x100);
         // cout << resultPDU << '\n';
     }
     printPDU(pdu);
@@ -247,6 +244,6 @@ int makeRandom(int s) {
 
 void printPDU(vector<int> v) {
     for (int i : v) { 
-        cout << i << " ";
+        cout << setfill('0') << setw(2) << hex << i << " ";
     }
 }
